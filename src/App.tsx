@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
-import { Button, Text, View, ScrollView } from 'react-native';
-import stylesheet from './stylesheet';
-import { Card } from './components';
+import React, {
+  useState
+} from "react";
+import {
+  ScrollView,
+  Button,
+  Text,
+  View
+} from "react-native";
+import stylesheet from "./stylesheet";
+import {
+  Card
+} from "./components";
+
+const FAKE_API_URL = "https://fakeapi.nibgat.space/members";
 
 const App = () => {
+  const [isRequestFinished, setIsRequestFinished] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState([]);
-  const url = 'https://fakeapi.nibgat.space/members';
 
-  const get = async () => {
+  const getUserDatas = async () => {
     setIsLoading(true);
+
     try {
-      const response = await fetch(url);
+      const response = await fetch(FAKE_API_URL);
       if (!response.ok) {
-        console.log('Sunucu hatası');
-        return;
+        throw response;
       }
+  
       const data = await response.json();
       setData(data);
     } catch (error) {
@@ -25,28 +37,48 @@ const App = () => {
     }
   };
 
-  return (
-    <View style={stylesheet.container}>
-      {!isLoading && !data.length ? (
-        <Button title="Verileri Yükle" onPress={get} />
-      ) : null}
+  const renderLoading = () => {
+    if(!loading) {
+      return null;
+    }
 
-      {isLoading ? (
-        <Text>Yükleniyor...</Text>
-      ) : (
-        <ScrollView>
-          {data.map((item) => (
-            <Card
-              key={item.id}
-              imgUrl={item.profilePhotoURL}
-              fullname={item.fullName}
-              age={item.age}
-            />
-          ))}
-        </ScrollView>
-      )}
-    </View>
-  );
+    return <Text>
+      Yükleniyor...
+    </Text>;
+  };
+
+  const renderUserCards = () => {
+    if(loading) {
+      return null;
+    }
+
+    return <ScrollView>
+      {data.map((item) => (
+        <Card
+          imgUrl={item.profilePhotoURL}
+          fullname={item.fullName}
+          age={item.age}
+          key={item.id}
+        />
+      ))}
+    </ScrollView>;
+  };
+
+  const renderLoadDataButton = () => {
+    if(isRequestFinished || loading) {
+      return null;
+    }
+
+    return <Button
+      title="Verileri Yükle"
+      onPress={getUserDatas}
+    </Button>
+  };
+
+  return <View style={stylesheet.container}>
+      {renderLoadDataButton()}
+      {renderLoading()}
+      {renderUserCards()}
+  </View>;
 };
-
 export default App;
